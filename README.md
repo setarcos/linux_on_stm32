@@ -23,7 +23,8 @@ The buildroot default is quite usable. Following peripherals are tested:
 Kernel
 ======
 
-Current kernel is 5.14.12 comming from buildroot.
+Tested with kernel 5.14.12 comming from buildroot.
+Tested with kernel 6.7.0-rc4.
 
 I2C
 ====
