@@ -15,7 +15,8 @@ The buildroot default is quite usable. Following peripherals are tested:
 
 * Serial Port
 * GPIOs and Leds
-* LCD (need to enabled first)
+* I2C
+* LCD
 
 ### Kernel
 
@@ -24,9 +25,13 @@ Tested with kernel 6.7.0-rc4.
 
 ### I2C
 
-When I2C is enabled in the dts file, the i2cdetect command can find a client
-at address 2a.  Which should be 0x54(doubled?) as the touchscreen chip FT6206.
-Maybe there is bug in the driver.
+When I2C is enabled in the dts file, use following command to get chip ID from
+FT6206.
+```
+i2cget -y 0 0x2a 0xa8
+```
+Howerver, i2cdetect(from busybox) can only find one chip (should has more)
+and make i2c bus busy forever.
 
 ### USB
 
