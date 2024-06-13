@@ -20,9 +20,9 @@ The buildroot default is quite usable. Following peripherals are tested:
 
 ### Kernel
 
-Tested with kernel 5.14.12 comming from buildroot.
-Tested with kernel 6.7.0-rc4.
-Tested with kernel 6.10.0-rc3.
+* Tested with kernel 5.14.12 comming from buildroot.
+* Tested with kernel 6.7.0-rc4.
+* Tested with kernel 6.10.0-rc3.
 
 ### GPIO
 
