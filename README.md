@@ -22,6 +22,12 @@ The buildroot default is quite usable. Following peripherals are tested:
 
 Tested with kernel 5.14.12 comming from buildroot.
 Tested with kernel 6.7.0-rc4.
+Tested with kernel 6.10.0-rc3.
+
+### GPIO
+
+GPIO output seems fine.  When used as input, GPIO other than port A can't get
+interrupt reported.
 
 ### I2C
 
@@ -30,8 +36,12 @@ FT6206.
 ```
 i2cget -y 0 0x2a 0xa8
 ```
-Howerver, i2cdetect(from busybox) can only find one chip (should has more)
-and make i2c bus busy forever.
+Howerver, i2cdetect(from busybox) will make i2c bus busy forever when probe range
+after address 0x30.
+
+I2C2 is not defined in stm32f429.dtsi. Don't know why. Maybe I should send a patch.
+When I2C2 is enabled, i2cdetect can't find any chip on it. It should have a audio
+codec available, maybe need to power on.
 
 ### USB
 
@@ -41,4 +51,4 @@ check on some usb devices later.
 ## TODO
 
 * better defconfig for kernel
-* touch screen (edt-ft5x06.c is promising, will check after i2c works).
+* touch screen (edt-ft5x06.c is promising, still working in progress).
