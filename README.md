@@ -24,11 +24,6 @@ The buildroot default is quite usable. Following peripherals are tested:
 * Tested with kernel 6.7.0-rc4.
 * Tested with kernel 6.10.0-rc3.
 
-### GPIO
-
-GPIO output seems fine.  When used as input, GPIO other than port A can't get
-interrupt reported.
-
 ### I2C
 
 When I2C is enabled in the dts file, use following command to get chip ID from
