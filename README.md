@@ -43,7 +43,10 @@ codec available, maybe need to power on.
 USB is working when dwc2 is compiled in.  I just verified with lsusb, should
 check on some usb devices later.
 
+### Touch Screen
+
+Touch screen with edt-ft5x06 driver works fine. Test code is [available](code/tst.c).
+
 ## TODO
 
-* better defconfig for kernel
-* touch screen (edt-ft5x06.c is promising, still working in progress).
+* make most of my work upstream.
