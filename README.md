@@ -45,8 +45,15 @@ check on some usb devices later.
 
 ### Touch Screen
 
-Touch screen with edt-ft5x06 driver works fine. Test code is [available](code/tst.c).
+Touch screen with edt-ft5x06 driver works. Test code is [available](code/tst.c).
+It's a bit unstable, maybe related with I2C.
+```
+[  202.012553] edt_ft5x06 0-002a: Unable to fetch data, error: -110
+[  202.021075] edt_ft5x06 0-002a: Unable to fetch data, error: -16
+```
 
 ## TODO
 
+* Testing ADC/DAC
+* Testing audio codec
 * make most of my work upstream.
