@@ -16,7 +16,6 @@ The buildroot default is quite usable. Following peripherals are tested:
 * Serial Port
 * GPIOs and Leds
 * I2C
-* LCD
 
 ### Kernel
 
@@ -55,6 +54,11 @@ It's a bit unstable, maybe related with I2C.
 [  202.012553] edt_ft5x06 0-002a: Unable to fetch data, error: -110
 [  202.021075] edt_ft5x06 0-002a: Unable to fetch data, error: -16
 ```
+
+### LCD
+
+The LCD is broken since kernel 6.11-rc1. The culprit is commit 185f99b6144 (drm/stm:
+dsi: expose DSI PHY internal clock). Still trying to figure out why.
 
 ## TODO
 
