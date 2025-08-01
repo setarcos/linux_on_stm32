@@ -58,7 +58,7 @@ It's a bit unstable, maybe related with I2C.
 ### LCD
 
 The LCD is broken since kernel 6.11-rc1. The culprit is commit 185f99b6144 (drm/stm:
-dsi: expose DSI PHY internal clock). Still trying to figure out why.
+dsi: expose DSI PHY internal clock). I have a working patch, but is not ready to merge.
 
 ## TODO
 
