@@ -1,0 +1,120 @@
+From 69b382f436997039707d3dd476de3e2b656e36fb Mon Sep 17 00:00:00 2001
+From: Pluto Yang <yangyj.ee@gmail.com>
+Date: Thu, 17 Sep 2026 13:00:18 +0800
+Subject: [PATCH 5/5] Input: edt-ft5x06: fetch the touch frame in small chunks
+ for FT6236
+
+Fetching the whole touch frame (15 bytes for 2 touch points) with a
+single bulk read has been observed to make an FT6206 hold SCL low when
+it is driven by the STM32F4 I2C controller: the transfer never
+completes, the controller keeps SR2.BUSY set and the touchscreen is
+unusable until the board is rebooted.  The failure is intermittent and
+appears after a few touches; on the STM32F469I-DISCO it reproduces
+within seconds.
+
+Reading the same frame as 2-byte chunks has proven reliable and only
+uses the short-transfer paths of the controller.  This is a workaround,
+not a fix for the root cause: the part sustains the very same bulk read
+when driven from bare metal, so the trigger is on the controller side.
+
+Keep the behaviour tied to the per-chip data, so that the other
+FocalTech parts keep using the single bulk transfer, and retry a chunk
+briefly since the controller may be recovering from a failed transfer.
+---
+ drivers/input/touchscreen/edt-ft5x06.c | 48 ++++++++++++++++++++++++--
+ 1 file changed, 46 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/input/touchscreen/edt-ft5x06.c b/drivers/input/touchscreen/edt-ft5x06.c
+index d6c3d033b83d..160d0258ec4e 100644
+--- a/drivers/input/touchscreen/edt-ft5x06.c
++++ b/drivers/input/touchscreen/edt-ft5x06.c
+@@ -146,10 +146,12 @@ struct edt_ft5x06_ts_data {
+ 	enum edt_ver version;
+ 	unsigned int crc_errors;
+ 	unsigned int header_errors;
++	bool read_tdata_in_chunks;
+ };
+ 
+ struct edt_i2c_chip_data {
+ 	int  max_support_points;
++	bool read_tdata_in_chunks;
+ };
+ 
+ static const struct regmap_config edt_ft5x06_i2c_regmap_config = {
+@@ -295,6 +297,42 @@ static const struct regmap_config edt_M06_i2c_regmap_config = {
+ 	.write = edt_M06_i2c_write,
+ };
+ 
++/*
++ * A single multi-byte burst read of the whole touch frame makes the FT6206
++ * found on the STM32F469I-DISCO hold SCL low, which wedges the I2C bus until
++ * the board is rebooted. Fetching the frame in small chunks avoids it; the
++ * chip is known to serve short reads reliably.
++ */
++#define EDT_TDATA_CHUNK_LEN	2
++
++static int edt_ft5x06_ts_read_tdata(struct edt_ft5x06_ts_data *tsdata,
++				    u8 *rdbuf, size_t len)
++{
++	size_t done = 0;
++
++	while (done < len) {
++		size_t chunk = min_t(size_t, len - done, EDT_TDATA_CHUNK_LEN);
++		int ret, tries;
++
++		for (tries = 0; tries < 3; tries++) {
++			ret = regmap_bulk_read(tsdata->regmap,
++					       tsdata->tdata_cmd + done,
++					       rdbuf + done, chunk);
++			if (!ret)
++				break;
++			if (ret != -ETIMEDOUT && ret != -EAGAIN)
++				return ret;
++			usleep_range(2000, 4000);
++		}
++		if (ret)
++			return ret;
++
++		done += chunk;
++	}
++
++	return 0;
++}
++
+ static irqreturn_t edt_ft5x06_ts_isr(int irq, void *dev_id)
+ {
+ 	struct edt_ft5x06_ts_data *tsdata = dev_id;
+@@ -304,8 +342,12 @@ static irqreturn_t edt_ft5x06_ts_isr(int irq, void *dev_id)
+ 	int error;
+ 
+ 	memset(rdbuf, 0, sizeof(rdbuf));
+-	error = regmap_bulk_read(tsdata->regmap, tsdata->tdata_cmd, rdbuf,
+-				 tsdata->tdata_len);
++	if (tsdata->read_tdata_in_chunks)
++		error = edt_ft5x06_ts_read_tdata(tsdata, rdbuf,
++						 tsdata->tdata_len);
++	else
++		error = regmap_bulk_read(tsdata->regmap, tsdata->tdata_cmd,
++					 rdbuf, tsdata->tdata_len);
+ 	if (error) {
+ 		dev_err_ratelimited(dev, "Unable to fetch data, error: %d\n",
+ 				    error);
+@@ -1157,6 +1199,7 @@ static int edt_ft5x06_ts_probe(struct i2c_client *client)
+ 	}
+ 
+ 	tsdata->max_support_points = chip_data->max_support_points;
++	tsdata->read_tdata_in_chunks = chip_data->read_tdata_in_chunks;
+ 
+ 	tsdata->vcc = devm_regulator_get(&client->dev, "vcc");
+ 	if (IS_ERR(tsdata->vcc))
+@@ -1469,6 +1512,7 @@ static const struct edt_i2c_chip_data edt_ft5506_data = {
+ 
+ static const struct edt_i2c_chip_data edt_ft6236_data = {
+ 	.max_support_points = 2,
++	.read_tdata_in_chunks = true,
+ };
+ 
+ static const struct edt_i2c_chip_data edt_ft8201_data = {
+-- 
+2.55.0
+
