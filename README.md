@@ -25,7 +25,7 @@ The buildroot default is quite usable. Following peripherals are tested:
 
 ### Accepted patches
 * commit [0fc78aa67b3f](https://github.com/torvalds/linux/commit/0fc78aa67b3f9a7cc6b67ddbc511e4a5022cfd01) ("ARM: stm32: dts: Missing clocks for stm32f429's syscfg.")
-* commit [3b65cc989242](https://github.com/torvalds/linux/commit/3ccea4784fddd96fbd6c4497eb28b45dab638c2a) ("ARM: Remove address checking for MMUless devices")
+* commit [3ccea4784fdd](https://github.com/torvalds/linux/commit/3ccea4784fddd96fbd6c4497eb28b45dab638c2a) ("ARM: Remove address checking for MMUless devices")
 
 ### I2C
 
